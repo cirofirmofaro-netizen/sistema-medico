@@ -1,0 +1,38 @@
+Você é responsável por preparar a infraestrutura de versionamento e governança do projeto Plantão Médico.  
+Configure os seguintes arquivos e ajustes automaticamente no repositório:
+
+1. Crie/ajuste os seguintes arquivos na raiz:
+   - README.md: com nome do projeto, stack, instruções para rodar, fluxo de git (main/develop/feature), e status do projeto.
+   - CONTRIBUTING.md: descrevendo fluxo de branches (main, develop, feature/*, fix/*, hotfix/*, release/*), padrão Conventional Commits, pull requests e checklist.
+   - CODEOWNERS: defina que todo `apps/api/**` e `apps/web/**` precisam da aprovação do time de sistemas (usuário: @cirofirmofaro).
+   - pull_request_template.md: checklist básico (build/testes/lint ok, docs atualizados, migração de banco aplicada se houver).
+   - .gitattributes: configure `* text=auto eol=lf`.
+   - .gitignore: robusto para monorepo Node (apps/api e apps/web), ignorando node_modules, dist, build, logs, .env, caches, IDEs, coverage etc.
+   - CHANGELOG.md: inicial vazio, mas com título e instrução para ser atualizado a cada release/tag.
+
+2. Configure Conventional Commits no projeto:
+   - Adicione dependências dev necessárias para commitlint/husky.
+   - Crie arquivo commitlint.config.js validando os tipos: feat, fix, chore, docs, refactor, test, perf, build, ci.
+   - Configure Husky para rodar lint/format + commitlint no pre-commit/pre-push.
+
+3. Configure scripts npm/pnpm:
+   - `pnpm lint`, `pnpm format`, `pnpm test`, `pnpm release` (release gera changelog + cria tag semver).
+
+4. Configure fluxo de versionamento semântico:
+   - Cada release deve gerar tag `vX.Y.Z` e atualizar CHANGELOG.md automaticamente.
+   - Use semantic-release ou equivalente.
+
+5. Adicione no README.md seção "Versionamento" explicando que usamos SemVer (MAJOR.MINOR.PATCH).
+
+6. Crie um CONTRIBUTING.md com checklist para PR:
+   - Build e testes passando
+   - Coverage mínima
+   - Lint/format sem erros
+   - Commits no padrão
+   - Docs/migrações atualizadas
+
+7. Configure CI básico (GitHub Actions):
+   - Workflow em `.github/workflows/ci.yml` que roda em push/pull_request:
+     - Instala dependências
+     - Roda lint, format check e testes
+     - Gera build

@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 .pnpm-store/
+.pnpm-debug.log*
 
 # Environment variables
 .env
@@ -8,12 +9,14 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
 
 # Build outputs
 dist/
 build/
 .next/
 out/
+*.tsbuildinfo
 
 # Logs
 logs/
@@ -37,15 +40,10 @@ pids/
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov
-
-# nyc test coverage
 .nyc_output
 
 # Dependency directories
 jspm_packages/
-
-# TypeScript cache
-*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -77,7 +75,6 @@ jspm_packages/
 
 # Nuxt.js build / generate output
 .nuxt
-dist
 
 # Gatsby files
 .cache/
@@ -136,3 +133,65 @@ prontuario/.data/
 # Large files
 *.log
 *.meta
+
+# Expo
+.expo/
+.expo-shared/
+
+# React Native
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# Flipper
+ios/Pods/
+
+# CocoaPods
+ios/Pods/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Bundle artifacts
+*.jsbundle
+
+# Ruby / CocoaPods
+/ios/Pods/
+/vendor/bundle/
+
+# Temporary files created by Metro to check the health of the file watcher
+.metro-health-check*
+
+# Testing
+/coverage
+
+# Production
+/build
+
+# Misc
+*.tgz
+*.tar.gz
+
+# Yarn
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*

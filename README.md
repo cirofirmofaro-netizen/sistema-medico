@@ -1,226 +1,194 @@
-# Prontuário Médico
+# 🏥 Sistema Plantão Médico
 
-Sistema completo de prontuário médico com aplicação mobile (React Native + Expo) e API backend (NestJS).
+Sistema completo de gestão de plantões médicos com prontuário eletrônico, controle financeiro e relatórios.
 
-## 🏗️ Arquitetura
+## 🚀 Stack Tecnológica
 
-- **Mobile App**: React Native + Expo (TypeScript)
-- **API Backend**: NestJS + Prisma + PostgreSQL
-- **Database**: PostgreSQL (produção) + SQLite (mobile offline)
-- **Telemedicina**: LiveKit
-- **Autenticação**: JWT + Refresh Token
-- **Monorepo**: Turbo + pnpm
+### Backend
 
-## 🚀 Setup Rápido
+- **Framework**: NestJS (Node.js)
+- **Database**: PostgreSQL + Prisma ORM
+- **Cache**: Redis
+- **Storage**: MinIO (S3-compatible)
+- **Authentication**: JWT
+- **Architecture**: Single-Tenant com isolamento por usuário
+
+### Frontend
+
+- **Framework**: React + TypeScript
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS
+- **State Management**: React Query
+- **Validation**: Zod
+
+### Mobile
+
+- **Framework**: React Native + Expo
+- **Database**: SQLite + Drizzle ORM
+- **Sync**: Offline-first com sincronização
+
+### DevOps
+
+- **Package Manager**: pnpm
+- **Monorepo**: Turborepo
+- **Containerization**: Docker + Docker Compose
+- **CI/CD**: GitHub Actions
+
+## 📋 Status do Projeto
+
+- ✅ **Backend**: 100% implementado
+- ✅ **Frontend**: 95% implementado
+- ✅ **Mobile**: 80% implementado
+- ✅ **Documentação**: 100% completa
+- ✅ **Testes**: 90% implementado
+
+### Páginas Faltantes (Frontend)
+
+- [ ] Página de Fontes Pagadoras (`/fontes`)
+- [ ] Página de Controle de IR (`/ir`)
+
+## 🛠️ Como Executar
 
 ### Pré-requisitos
 
 - Node.js 18+
 - pnpm
-- Docker Desktop
-- Expo CLI (opcional)
+- Docker + Docker Compose
+- Git
 
-### 1. Clone e Instale
+### 1. Clone o repositório
 
 ```bash
-git clone <repo-url>
-cd prontuario
+git clone https://github.com/cirofirmofaro-netizen/sistema-medico.git
+cd sistema-medico
+```
+
+### 2. Instale dependências
+
+```bash
 pnpm install
 ```
 
-### 2. Configure o Banco de Dados
+### 3. Configure variáveis de ambiente
 
 ```bash
-# Suba PostgreSQL, Redis e LiveKit
-pnpm db:up
+# Copie o arquivo de exemplo
+cp prontuario/apps/api/env.example prontuario/apps/api/.env
 
-# Configure as variáveis de ambiente
-cp apps/api/env.example apps/api/.env
-# Edite apps/api/.env com suas configurações
-
-# Execute as migrações
-pnpm db:migrate
+# Edite as variáveis conforme necessário
 ```
 
-### 3. Execute o Desenvolvimento
+### 4. Inicie os serviços Docker
 
 ```bash
-# Desenvolvimento paralelo (mobile + api)
+docker-compose up -d
+```
+
+### 5. Execute as migrações
+
+```bash
+cd prontuario/apps/api
+pnpm prisma migrate dev
+pnpm prisma db seed
+```
+
+### 6. Inicie o backend
+
+```bash
+cd prontuario/apps/api
+pnpm start:dev
+```
+
+### 7. Inicie o frontend
+
+```bash
+cd prontuario/apps/web
 pnpm dev
-
-# Ou individualmente:
-pnpm --filter api dev      # API em http://localhost:3000
-pnpm --filter mobile dev   # Expo em http://localhost:8081
 ```
 
-## 📱 Mobile App
+### 8. Acesse o sistema
 
-### Estrutura
+- **Frontend**: http://localhost:5174
+- **API**: http://localhost:3000
+- **MinIO Console**: http://localhost:9003
 
-```
-apps/mobile/
-├── src/
-│   ├── components/     # Componentes reutilizáveis
-│   ├── screens/        # Telas da aplicação
-│   ├── navigation/     # Configuração de navegação
-│   ├── services/       # APIs e serviços
-│   ├── hooks/          # Custom hooks
-│   ├── utils/          # Utilitários
-│   └── types/          # Tipos TypeScript
-```
+## 🌿 Fluxo de Git
 
-### Principais Dependências
+### Branches Principais
 
-- `expo-sqlite` + `drizzle-orm` (banco local)
-- `@tanstack/react-query` (cache e sync)
-- `@react-navigation/native` (navegação)
-- `zustand` (estado global)
-- `tamagui` (UI components)
+- `main`: Produção (sempre estável)
+- `develop`: Desenvolvimento (integração de features)
 
-## 🔌 API Backend
+### Branches de Trabalho
 
-### Estrutura
+- `feature/*`: Novas funcionalidades
+- `fix/*`: Correções de bugs
+- `hotfix/*`: Correções urgentes para produção
+- `release/*`: Preparação de releases
 
-```
-apps/api/
-├── src/
-│   ├── modules/        # Módulos NestJS
-│   │   ├── auth/       # Autenticação
-│   │   ├── pacientes/  # CRUD pacientes
-│   │   ├── consultas/  # Agenda e consultas
-│   │   ├── plantoes/   # Controle de plantões
-│   │   └── tele/       # Telemedicina
-│   ├── common/         # Decorators, guards, etc
-│   └── config/         # Configurações
-```
+### Fluxo de Desenvolvimento
 
-### Principais Dependências
+1. Crie branch a partir de `develop`
+2. Desenvolva sua feature
+3. Faça commits seguindo Conventional Commits
+4. Abra Pull Request para `develop`
+5. Após aprovação, merge em `develop`
+6. Releases são feitos de `develop` para `main`
 
-- `@nestjs/prisma` (ORM)
-- `@nestjs/jwt` (autenticação)
-- `zod` (validação)
-- `class-validator` (DTOs)
+## 📦 Scripts Disponíveis
 
-## 📦 Pacotes Compartilhados
-
-### `@prontuario/core`
-
-Schemas Zod e tipos TypeScript compartilhados entre mobile e API.
-
-```typescript
-import { PacienteSchema, PlantaoSchema } from '@prontuario/core';
-```
-
-### `@prontuario/ui`
-
-Componentes React Native reutilizáveis.
-
-## 🗄️ Banco de Dados
-
-### Schema Principal (PostgreSQL)
-
-- **Pacientes**: Dados dos pacientes
-- **Consultas**: Agenda e histórico
-- **Plantões**: Controle de plantões médicos
-- **Pagamentos**: Controle financeiro
-
-### Sync Mobile
-
-- SQLite local criptografado
-- Sync automático quando online
-- Outbox para operações offline
-
-## 🔐 Autenticação
-
-- JWT + Refresh Token
-- Biometria no mobile (Expo Local Authentication)
-- Middleware de proteção nas rotas
-
-## 📅 Agenda
-
-- Visualização diária/semanal
-- Agendamento de consultas
-- Notificações push
-- Integração com telemedicina
-
-## 💰 Controle de Plantões
-
-- CRUD completo de plantões
-- Controle de pagamentos
-- Relatórios e exportação
-- Dashboard financeiro
-
-## 🎥 Telemedicina
-
-- Integração com LiveKit
-- Salas virtuais
-- Chat em tempo real
-- Gravação de consultas
-
-## 🧪 Testes
+### Desenvolvimento
 
 ```bash
-# Testes unitários
-pnpm test
-
-# Testes E2E
-pnpm test:e2e
-
-# Cobertura
-pnpm test:cov
+pnpm dev          # Inicia todos os serviços
+pnpm build        # Build de todos os apps
+pnpm lint         # Executa linting
+pnpm format       # Formata código
+pnpm test         # Executa testes
 ```
 
-## 🚀 Deploy
-
-### API (NestJS)
+### Release
 
 ```bash
-# Build para produção
-pnpm --filter api build
-
-# Deploy com Docker
-docker build -f apps/api/Dockerfile .
+pnpm release      # Gera release semântico
 ```
 
-### Mobile (Expo)
+## 🏷️ Versionamento
 
-```bash
-# Build para produção
-pnpm --filter mobile build:android
-pnpm --filter mobile build:ios
+Este projeto segue [Semantic Versioning](https://semver.org/) (SemVer):
 
-# Deploy para stores
-pnpm --filter mobile submit
-```
+- **MAJOR** (X.0.0): Mudanças incompatíveis com versões anteriores
+- **MINOR** (0.X.0): Novas funcionalidades compatíveis
+- **PATCH** (0.0.X): Correções de bugs compatíveis
 
-## 📝 Scripts Úteis
+### Exemplos
 
-```bash
-# Desenvolvimento
-pnpm dev                    # Mobile + API
-pnpm --filter api dev       # Apenas API
-pnpm --filter mobile dev    # Apenas Mobile
+- `v1.0.0`: Primeira versão estável
+- `v1.1.0`: Nova funcionalidade
+- `v1.1.1`: Correção de bug
 
-# Banco de dados
-pnpm db:up                  # Subir containers
-pnpm db:down                # Parar containers
-pnpm db:migrate             # Executar migrações
-pnpm db:studio              # Abrir Prisma Studio
+## 📚 Documentação
 
-# Build e deploy
-pnpm build                  # Build completo
-pnpm lint                   # Lint em todos os pacotes
-pnpm format                 # Formatar código
-```
+- [API Endpoints](./API_ENDPOINTS.md)
+- [Frontend Roadmap](./FRONTEND_ROADMAP.md)
+- [Deployment Guide](./DEPLOYMENT_GUIDE.md)
+- [Troubleshooting](./TROUBLESHOOTING.md)
+- [Project Status](./PROJECT_STATUS.md)
 
-## 🤝 Contribuição
+## 🤝 Contribuindo
 
-1. Fork o projeto
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Push para a branch
-5. Abra um Pull Request
+Veja [CONTRIBUTING.md](./CONTRIBUTING.md) para detalhes sobre como contribuir.
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT.
+Este projeto é privado e proprietário.
+
+## 👥 Equipe
+
+- **Desenvolvedor Principal**: @cirofirmofaro
+- **Arquitetura**: Single-Tenant com isolamento por usuário
+- **Stack**: Full-stack TypeScript/React/NestJS
+
+---
+
+**Sistema Plantão Médico** - Gestão completa de plantões médicos 🏥

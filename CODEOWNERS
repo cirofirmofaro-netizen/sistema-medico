@@ -1,0 +1,25 @@
+# CODEOWNERS - Sistema Plantão Médico
+
+# Time de Sistemas - Aprovação obrigatória para mudanças críticas
+@cirofirmofaro
+
+# Backend - API NestJS
+/apps/api/ @cirofirmofaro
+
+# Frontend - React Web App
+/apps/web/ @cirofirmofaro
+
+# Mobile - React Native App
+/apps/mobile/ @cirofirmofaro
+
+# Pacotes compartilhados
+/packages/ @cirofirmofaro
+
+# Configurações de infraestrutura
+/docker-compose.yml @cirofirmofaro
+/.github/ @cirofirmofaro
+/package.json @cirofirmofaro
+/pnpm-workspace.yaml @cirofirmofaro
+
+# Documentação
+/*.md @cirofirmofaro
