@@ -3,12 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
+    "prepare": "husky",
+    "build": "pnpm -r build",
     "dev": "turbo run dev --parallel",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml,yaml,css,scss,html}\"",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format",
+    "format:fix": "pnpm -r format:fix",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json,yml,yaml,css,scss,html}\"",
-    "test": "turbo run test",
+    "test": "pnpm -r test",
     "test:cov": "turbo run test:cov",
     "test:watch": "turbo run test:watch",
     "test:e2e": "turbo run test:e2e",
@@ -16,14 +18,14 @@
     "db:down": "docker compose -f infra/docker-compose.yml down -v",
     "db:migrate": "cd apps/api && pnpm prisma migrate dev",
     "db:studio": "cd apps/api && pnpm prisma studio",
-    "release": "semantic-release",
-    "prepare": "husky"
+    "release": "semantic-release"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.4",
     "@semantic-release/npm": "^12.0.2",
     "@turbo/gen": "^1.12.4",
     "husky": "^9.1.7",
@@ -38,6 +40,39 @@
     "apps/*",
     "packages/*"
   ],
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/changelog",
+        {
+          "changelogFile": "CHANGELOG.md"
+        }
+      ],
+      [
+        "@semantic-release/npm",
+        {
+          "npmPublish": false
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md",
+            "package.json",
+            "pnpm-lock.yaml"
+          ],
+          "message": "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}"
+        }
+      ],
+      "@semantic-release/github"
+    ]
+  },
   "dependencies": {
     "@prisma/client": "6.13.0",
     "axios": "^1.11.0"
