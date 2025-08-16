@@ -1,0 +1,48 @@
+import { Shift } from '@/types'
+
+export const mockShifts: Shift[] = [
+  {
+    id: '1',
+    title: 'Plantão UPA 24h',
+    hospital: 'Hospital Municipal',
+    date: '15/06/2024',
+    startTime: '19:00',
+    endTime: '07:00',
+    location: 'São Paulo, SP',
+    type: 'noturno',
+    status: 'agendado',
+  },
+  {
+    id: '2',
+    title: 'Plantão Pronto Socorro',
+    hospital: 'Hospital Albert Einstein',
+    date: '18/08/2024',
+    startTime: '07:00',
+    endTime: '19:00',
+    location: 'São Paulo, SP',
+    type: 'diurno',
+    status: 'agendado',
+  },
+  {
+    id: '3',
+    title: 'Plantão UTI',
+    hospital: 'Hospital Sírio-Libanês',
+    date: '20/08/2024',
+    startTime: '19:00',
+    endTime: '07:00',
+    location: 'São Paulo, SP',
+    type: 'noturno',
+    status: 'agendado',
+  },
+  {
+    id: '4',
+    title: 'Plantão Emergência',
+    hospital: 'Hospital das Clínicas',
+    date: '22/08/2024',
+    startTime: '07:00',
+    endTime: '19:00',
+    location: 'São Paulo, SP',
+    type: 'diurno',
+    status: 'agendado',
+  },
+]
