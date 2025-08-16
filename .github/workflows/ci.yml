@@ -7,62 +7,59 @@ on:
     branches: [main, develop]
 
 jobs:
-  setup:
+  detect:
+    name: Detect workspace
     runs-on: ubuntu-latest
     outputs:
-      node-version: "20"
+      has_pkg: ${{ steps.check.outputs.has_pkg }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - run: pnpm install --frozen-lockfile
+      - id: check
+        run: |
+          if ls **/package.json 1> /dev/null 2>&1; then
+            echo "has_pkg=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_pkg=false" >> $GITHUB_OUTPUT
+          fi
 
   lint:
-    runs-on: ubuntu-latest
     name: CI / lint
+    needs: detect
+    if: needs.detect.outputs.has_pkg == 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
+        with: { node-version: 20, cache: 'pnpm' }
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+        with: { version: 9 }
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r lint
 
   test:
-    runs-on: ubuntu-latest
     name: CI / test
+    needs: detect
+    if: needs.detect.outputs.has_pkg == 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
+        with: { node-version: 20, cache: 'pnpm' }
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+        with: { version: 9 }
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r test
 
   build:
-    runs-on: ubuntu-latest
     name: CI / build
+    needs: detect
+    if: needs.detect.outputs.has_pkg == 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
+        with: { node-version: 20, cache: 'pnpm' }
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+        with: { version: 9 }
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r build
