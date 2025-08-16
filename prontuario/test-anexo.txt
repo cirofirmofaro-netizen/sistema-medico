@@ -1,0 +1,5 @@
+﻿Este é um arquivo de teste para o sistema de anexos.
+Data: 14/08/2025
+Hora: 12:26
+Sistema: MinIO + NestJS
+Status: Testando upload e download

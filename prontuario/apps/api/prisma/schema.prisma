@@ -1,0 +1,755 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                       String              @id @default(cuid())
+  email                    String              @unique
+  nome                     String
+  senha                    String
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  tipo                     String              @default("medico")
+  alergias                 Alergia[]
+  anexos                   Anexo[]
+  atendimentosProfissional Atendimento[]       @relation("AtendimentoProfissional")
+  atendimentos             Atendimento[]       @relation("AtendimentoUsuario")
+  consultas                Consulta[]
+  documentosClinicos       DocumentoClinico[]
+  episodios                Episodio[]
+  evolucoesAutor           Evolucao[]          @relation("EvolucaoAutor")
+  evolucoes                Evolucao[]          @relation("EvolucaoUsuario")
+  evolucaoVersions         EvolucaoVersion[]   @relation("EvolucaoVersionChangedBy")
+  fontesPagadoras          FontePagadora[]
+  informesRendimento       InformeRendimento[]
+  medicacoesAtivas         MedicacaoAtiva[]
+  modelosPlantao           ModeloPlantao[]
+  notasFiscais             NotaFiscal[]
+  pacientes                Paciente[]
+  pagamentos               Pagamento[]
+  patientAllergiesRecorded PatientAllergy[]    @relation("PatientAllergyRecordedBy")
+  patientAllergies         PatientAllergy[]    @relation("PatientAllergyUsuario")
+  patientConditions        PatientCondition[]
+  patientMedications       PatientMedication[]
+  plantoes                 Plantao[]
+  problemasClinicos        ProblemaClinico[]
+  sinaisVitais             SinaisVitais[]
+}
+
+model Paciente {
+  id                 String              @id @default(uuid())
+  nome               String
+  dtNasc             DateTime?
+  sexo               String?
+  cpf                String?
+  telefone           String?
+  email              String?
+  endereco           String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  usuarioId          String
+  alergias           Alergia[]
+  atendimentos       Atendimento[]
+  consultas          Consulta[]
+  documentosClinicos DocumentoClinico[]
+  episodios          Episodio[]
+  medicacoesAtivas   MedicacaoAtiva[]
+  usuario            Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  patientAllergies   PatientAllergy[]
+  patientConditions  PatientCondition[]
+  patientMedications PatientMedication[]
+  problemasClinicos  ProblemaClinico[]
+
+  @@unique([usuarioId, cpf])
+  @@index([usuarioId])
+  @@index([usuarioId, createdAt])
+}
+
+model Consulta {
+  id         String         @id @default(uuid())
+  pacienteId String?
+  tipo       ConsultaTipo
+  inicio     DateTime
+  fim        DateTime
+  status     ConsultaStatus @default(AGENDADA)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  usuarioId  String
+  paciente   Paciente?      @relation(fields: [pacienteId], references: [id])
+  usuario    Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([usuarioId, inicio])
+}
+
+model Episodio {
+  id         String    @id @default(uuid())
+  pacienteId String
+  tipo       String
+  abertoEm   DateTime  @default(now())
+  fechadoEm  DateTime?
+  usuarioId  String
+  paciente   Paciente  @relation(fields: [pacienteId], references: [id])
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([usuarioId, abertoEm])
+}
+
+model Evolucao {
+  id             String            @id @default(cuid())
+  registradoEm   DateTime          @default(now())
+  resumo         String?
+  texto          String
+  atendimentoId  String
+  authorId       String
+  currentVersion Int               @default(1)
+  locked         Boolean           @default(false)
+  usuarioId      String
+  atendimento    Atendimento       @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  autor          Usuario           @relation("EvolucaoAutor", fields: [authorId], references: [id])
+  usuario        Usuario           @relation("EvolucaoUsuario", fields: [usuarioId], references: [id], onDelete: Cascade)
+  versions       EvolucaoVersion[]
+
+  @@index([usuarioId])
+  @@index([usuarioId, registradoEm])
+}
+
+model EvolucaoVersion {
+  id            String   @id @default(cuid())
+  evolucaoId    String
+  version       Int
+  texto         String
+  changedAt     DateTime @default(now())
+  changedBy     String
+  changedByUser Usuario  @relation("EvolucaoVersionChangedBy", fields: [changedBy], references: [id])
+  evolucao      Evolucao @relation(fields: [evolucaoId], references: [id], onDelete: Cascade)
+
+  @@unique([evolucaoId, version])
+}
+
+model SinaisVitais {
+  id                     String      @id @default(cuid())
+  atendimentoId          String
+  usuarioId              String
+  registradoEm           DateTime    @default(now())
+  pressaoSistolica       Int
+  pressaoDiastolica      Int
+  frequenciaCardiaca     Int
+  frequenciaRespiratoria Int
+  saturacaoOxigenio      Int
+  temperatura            Float
+  peso                   Float?
+  altura                 Float?
+  observacoes            String?
+  atendimento            Atendimento @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  usuario                Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([atendimentoId])
+  @@index([usuarioId, registradoEm])
+}
+
+model Anexo {
+  id                  String      @id @default(cuid())
+  filename            String
+  mimeType            String
+  size                Int
+  storageKey          String
+  urlPublica          String?
+  createdAt           DateTime    @default(now())
+  atendimentoId       String
+  tipoDocumento       String?
+  titulo              String?
+  deletedAt           DateTime?
+  lastPatientActivity DateTime?
+  legalHold           Boolean     @default(false)
+  retainedUntil       DateTime?
+  retentionReason     String?
+  usuarioId           String
+  atendimento         Atendimento @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  usuario             Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([atendimentoId])
+  @@index([retainedUntil])
+  @@index([legalHold])
+  @@index([usuarioId, createdAt])
+}
+
+model Alergia {
+  id          String      @id @default(uuid())
+  pacienteId  String
+  descricao   String
+  reacao      String?
+  severidade  Severidade?
+  observadoEm DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  usuarioId   String
+  paciente    Paciente    @relation(fields: [pacienteId], references: [id])
+  usuario     Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([usuarioId, pacienteId])
+}
+
+model MedicacaoAtiva {
+  id         String    @id @default(uuid())
+  pacienteId String
+  nome       String
+  dose       String?
+  via        String?
+  frequencia String?
+  inicioEm   DateTime?
+  terminoEm  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  usuarioId  String
+  paciente   Paciente  @relation(fields: [pacienteId], references: [id])
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([usuarioId, pacienteId])
+}
+
+model ProblemaClinico {
+  id         String         @id @default(uuid())
+  pacienteId String
+  titulo     String
+  cid        String?
+  status     StatusProblema @default(ATIVO)
+  inicioEm   DateTime?
+  terminoEm  DateTime?
+  notas      String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  usuarioId  String
+  paciente   Paciente       @relation(fields: [pacienteId], references: [id])
+  usuario    Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([usuarioId, pacienteId])
+}
+
+model DocumentoClinico {
+  id                String             @id @default(uuid())
+  tipo              DocumentoTipo
+  pacienteId        String
+  fileKey           String
+  urlPublica        String?
+  mimeType          String             @default("application/pdf")
+  hashSha256        String?
+  tamanhoBytes      Int?
+  assinaturaStatus  AssinaturaStatus   @default(NAO_ASSINADO)
+  signedAt          DateTime?
+  signerName        String?
+  payloadJson       Json
+  createdAt         DateTime           @default(now())
+  assinaturaAlg     String?
+  assinaturaFormato String?
+  assinaturaHash    String?
+  assinaturaKey     String?
+  signerCertIssuer  String?
+  signerCertSubject String?
+  signerSerial      String?
+  certStatus        CertStatus?        @default(DESCONHECIDO)
+  certValidadoEm    DateTime?
+  signerChainPem    Json?
+  usuarioId         String
+  assinaturaEventos AssinaturaEvento[]
+  paciente          Paciente           @relation(fields: [pacienteId], references: [id])
+  usuario           Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([usuarioId, tipo])
+  @@index([usuarioId, createdAt])
+}
+
+model WebhookIdem {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  createdAt DateTime @default(now())
+}
+
+model AssinaturaEvento {
+  id            String           @id @default(uuid())
+  documentoId   String
+  tipo          String
+  ip            String?
+  userAgent     String?
+  createdAt     DateTime         @default(now())
+  payloadResumo Json?
+  documento     DocumentoClinico @relation(fields: [documentoId], references: [id])
+}
+
+model Condition {
+  id                  String             @id @default(cuid())
+  name                String             @unique
+  canonical           String             @unique
+  icd10               String?
+  snomed              String?
+  chronicDefault      Boolean            @default(false)
+  treatableDefault    Boolean            @default(true)
+  allowRecurrence     Boolean            @default(true)
+  typicalDurationDays Int?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  synonyms            ConditionSynonym[]
+  patientConditions   PatientCondition[]
+
+  @@index([canonical])
+}
+
+model ConditionSynonym {
+  id          String    @id @default(cuid())
+  conditionId String
+  value       String
+  canonical   String
+  condition   Condition @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+
+  @@index([canonical])
+}
+
+model PatientCondition {
+  id                String                @id @default(cuid())
+  patientId         String
+  conditionId       String
+  source            ConditionSource
+  status            ConditionStatus       @default(ACTIVE)
+  onsetDate         DateTime?
+  resolutionDate    DateTime?
+  chronicOverride   Boolean?
+  treatableOverride Boolean?
+  severity          String?
+  notes             String?
+  appointmentId     String?
+  lastReviewedAt    DateTime?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  locked            Boolean               @default(false)
+  usuarioId         String
+  occurrences       ConditionOccurrence[]
+  condition         Condition             @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+  patient           Paciente              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  usuario           Usuario               @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([patientId])
+  @@index([usuarioId, patientId])
+  @@index([usuarioId, status])
+}
+
+model ConditionOccurrence {
+  id                 String           @id @default(cuid())
+  patientConditionId String
+  startAt            DateTime
+  endAt              DateTime?
+  notes              String?
+  patientCondition   PatientCondition @relation(fields: [patientConditionId], references: [id], onDelete: Cascade)
+
+  @@index([startAt])
+}
+
+model PatientMedication {
+  id        String    @id @default(cuid())
+  patientId String
+  name      String
+  dose      String?
+  frequency String?
+  route     String?
+  startDate DateTime?
+  endDate   DateTime?
+  notes     String?
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  usuarioId String
+  patient   Paciente  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([patientId, active])
+  @@index([usuarioId, patientId])
+  @@index([usuarioId, active])
+}
+
+model Atendimento {
+  id             String            @id @default(cuid())
+  patientId      String
+  professionalId String
+  serviceDate    DateTime
+  startedAt      DateTime          @default(now())
+  finishedAt     DateTime?
+  status         AtendimentoStatus @default(EM_ANDAMENTO)
+  dayHash        String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  usuarioId      String
+  anexos         Anexo[]
+  paciente       Paciente          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  profissional   Usuario           @relation("AtendimentoProfissional", fields: [professionalId], references: [id])
+  usuario        Usuario           @relation("AtendimentoUsuario", fields: [usuarioId], references: [id], onDelete: Cascade)
+  evolucoes      Evolucao[]
+  sinaisVitais   SinaisVitais[]
+
+  @@unique([usuarioId, patientId, serviceDate])
+  @@index([usuarioId, patientId, serviceDate])
+  @@index([usuarioId, serviceDate])
+  @@index([usuarioId, status])
+}
+
+model Allergen {
+  id               String             @id @default(cuid())
+  name             String             @unique
+  canonical        String             @unique
+  category         AllergyCategory
+  snomed           String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  crossRefsFrom    AllergenCrossRef[] @relation("AllergenCrossRefFrom")
+  crossRefsTo      AllergenCrossRef[] @relation("AllergenCrossRefTo")
+  synonyms         AllergenSynonym[]
+  patientAllergies PatientAllergy[]
+
+  @@index([canonical])
+}
+
+model AllergenSynonym {
+  id         String   @id @default(cuid())
+  allergenId String
+  value      String
+  canonical  String
+  allergen   Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+
+  @@index([canonical])
+}
+
+model AllergenCrossRef {
+  id           String   @id @default(cuid())
+  fromId       String
+  toId         String
+  relation     String
+  fromAllergen Allergen @relation("AllergenCrossRefFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toAllergen   Allergen @relation("AllergenCrossRefTo", fields: [toId], references: [id], onDelete: Cascade)
+}
+
+model PatientAllergy {
+  id             String          @id @default(cuid())
+  patientId      String
+  allergenId     String
+  status         AllergyStatus   @default(ACTIVE)
+  severity       AllergySeverity @default(UNKNOWN)
+  reactions      String?
+  onsetDate      DateTime?
+  notes          String?
+  source         AllergySource   @default(PATIENT)
+  recordedBy     String?
+  recordedAt     DateTime        @default(now())
+  lastUpdated    DateTime        @updatedAt
+  usuarioId      String
+  allergen       Allergen        @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+  patient        Paciente        @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  recordedByUser Usuario?        @relation("PatientAllergyRecordedBy", fields: [recordedBy], references: [id])
+  usuario        Usuario         @relation("PatientAllergyUsuario", fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, patientId, allergenId, status])
+  @@index([usuarioId])
+  @@index([patientId, status])
+  @@index([usuarioId, patientId])
+}
+
+model FontePagadora {
+  id                 String              @id @default(uuid())
+  nome               String
+  cnpj               String
+  tipoVinculo        TipoVinculo
+  contatoEmail       String?
+  contatoFone        String?
+  inicio             DateTime            @default(now())
+  fim                DateTime?
+  ativo              Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  usuarioId          String
+  usuario            Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  informesRendimento InformeRendimento[]
+  modelosPlantao     ModeloPlantao[]
+  notasFiscais       NotaFiscal[]
+  pagamentos         Pagamento[]
+  plantoes           Plantao[]
+
+  @@unique([usuarioId, cnpj])
+  @@index([usuarioId])
+  @@index([cnpj])
+  @@index([ativo])
+  @@index([usuarioId, ativo])
+}
+
+model ModeloPlantao {
+  id              String        @id @default(uuid())
+  fontePagadoraId String
+  local           String
+  descricao       String?
+  inicioPadrao    String
+  fimPadrao       String
+  duracaoMin      Int
+  valorPrevisto   Decimal       @db.Decimal(12, 2)
+  tipoVinculo     TipoVinculo
+  pagador         Pagador
+  fixo            Boolean       @default(false)
+  recorrencia     Json?
+  observacoes     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  usuarioId       String
+  fontePagadora   FontePagadora @relation(fields: [fontePagadoraId], references: [id], onDelete: Cascade)
+  usuario         Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  plantoes        Plantao[]
+
+  @@index([usuarioId])
+  @@index([fontePagadoraId])
+  @@index([usuarioId, fontePagadoraId])
+}
+
+model Plantao {
+  id              String         @id @default(uuid())
+  inicio          DateTime
+  fim             DateTime
+  local           String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  cnpj            String
+  data            DateTime
+  ehTroca         Boolean        @default(false)
+  fontePagadoraId String
+  modeloId        String?
+  motivoTroca     String?
+  reagendadoPara  DateTime?
+  status          StatusPlantao  @default(AGENDADO)
+  tipoVinculo     TipoVinculo
+  trocaCom        String?
+  valorPrevisto   Decimal        @db.Decimal(12, 2)
+  usuarioId       String
+  notasFiscais    NotaFiscal[]
+  pagamentos      Pagamento[]
+  fontePagadora   FontePagadora  @relation(fields: [fontePagadoraId], references: [id], onDelete: Cascade)
+  modelo          ModeloPlantao? @relation(fields: [modeloId], references: [id])
+  usuario         Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([fontePagadoraId])
+  @@index([data])
+  @@index([status])
+  @@index([cnpj])
+  @@index([usuarioId, data])
+  @@index([usuarioId, status])
+  @@index([usuarioId, fontePagadoraId])
+}
+
+model Pagamento {
+  id              String          @id @default(uuid())
+  plantaoId       String?
+  fontePagadoraId String
+  competencia     String
+  valorPrevisto   Decimal         @db.Decimal(12, 2)
+  valorPago       Decimal         @db.Decimal(12, 2)
+  dataPagamento   DateTime?
+  status          StatusPagamento @default(PENDENTE)
+  meio            MeioPagamento
+  nfId            String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  usuarioId       String
+  fontePagadora   FontePagadora   @relation(fields: [fontePagadoraId], references: [id], onDelete: Cascade)
+  notaFiscal      NotaFiscal?     @relation(fields: [nfId], references: [id])
+  plantao         Plantao?        @relation(fields: [plantaoId], references: [id])
+  usuario         Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([fontePagadoraId])
+  @@index([competencia])
+  @@index([status])
+  @@index([plantaoId])
+  @@index([usuarioId, competencia])
+  @@index([usuarioId, status])
+  @@index([usuarioId, fontePagadoraId])
+}
+
+model NotaFiscal {
+  id              String         @id @default(uuid())
+  plantaoId       String?
+  fontePagadoraId String?
+  numero          String
+  serie           String?
+  valor           Decimal        @db.Decimal(12, 2)
+  dataEmissao     DateTime
+  pdfKey          String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  usuarioId       String
+  fontePagadora   FontePagadora? @relation(fields: [fontePagadoraId], references: [id])
+  plantao         Plantao?       @relation(fields: [plantaoId], references: [id])
+  usuario         Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  pagamentos      Pagamento[]
+
+  @@index([usuarioId])
+  @@index([numero])
+  @@index([dataEmissao])
+  @@index([usuarioId, dataEmissao])
+}
+
+model InformeRendimento {
+  id              String        @id @default(uuid())
+  anoRef          Int
+  fontePagadoraId String
+  status          StatusInforme @default(PENDENTE)
+  pdfKey          String?
+  anotacoes       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  usuarioId       String
+  fontePagadora   FontePagadora @relation(fields: [fontePagadoraId], references: [id], onDelete: Cascade)
+  usuario         Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, fontePagadoraId, anoRef])
+  @@index([usuarioId])
+  @@index([anoRef])
+  @@index([status])
+  @@index([usuarioId, anoRef])
+  @@index([usuarioId, status])
+}
+
+enum UserRole {
+  ADMIN
+  MEDICO
+  ENFERMEIRO
+  RECEPCIONISTA
+}
+
+enum ConsultaTipo {
+  PRESENCIAL
+  TELE
+}
+
+enum ConsultaStatus {
+  AGENDADA
+  CONCLUIDA
+  CANCELADA
+}
+
+enum Severidade {
+  LEVE
+  MODERADA
+  GRAVE
+}
+
+enum StatusProblema {
+  ATIVO
+  RESOLVIDO
+}
+
+enum DocumentoTipo {
+  RECEITA
+  ATESTADO
+}
+
+enum AssinaturaStatus {
+  NAO_ASSINADO
+  ASSINADO
+}
+
+enum CertStatus {
+  VALIDO
+  REVOGADO
+  DESCONHECIDO
+}
+
+enum ConditionSource {
+  PRE_EXISTING
+  DIAGNOSED
+  SELF_REPORTED
+}
+
+enum ConditionStatus {
+  ACTIVE
+  REMISSION
+  RESOLVED
+  RULED_OUT
+}
+
+enum AtendimentoStatus {
+  EM_ANDAMENTO
+  FINALIZADO
+  CANCELADO
+}
+
+enum AllergyCategory {
+  DRUG
+  FOOD
+  ENVIRONMENT
+  CONTACT
+  OTHER
+}
+
+enum AllergySeverity {
+  MILD
+  MODERATE
+  SEVERE
+  UNKNOWN
+}
+
+enum AllergyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AllergySource {
+  PATIENT
+  REPORTED
+  CLINICAL
+  LAB
+}
+
+enum TipoVinculo {
+  CLT
+  RPA
+  PJ
+  COOPERATIVA
+  AUTONOMO
+}
+
+enum Pagador {
+  HOSPITAL
+  PLANTONISTA
+}
+
+enum StatusPlantao {
+  AGENDADO
+  REALIZADO
+  CANCELADO
+  TROCADO
+}
+
+enum StatusPagamento {
+  PENDENTE
+  PARCIAL
+  PAGO
+  EM_ATRASO
+}
+
+enum MeioPagamento {
+  HOSPITAL
+  PLANTONISTA
+}
+
+enum StatusInforme {
+  PENDENTE
+  SOLICITADO
+  RECEBIDO
+}

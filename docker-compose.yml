@@ -1,0 +1,42 @@
+services:
+  # PostgreSQL - banco principal do projeto
+  postgres:
+    image: postgres:16-alpine
+    container_name: prontuario-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: prontuario
+    ports:
+      - "5433:5432"  # HOST:CONTAINER - porta 5433 para evitar conflito
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis - cache e sessões
+  redis:
+    image: redis:7-alpine
+    container_name: prontuario-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # MinIO - storage S3-compatible
+  minio:
+    image: minio/minio:latest
+    container_name: prontuario-minio
+    ports:
+      - "9002:9000"   # API S3 - mudança para porta 9002
+      - "9003:9001"   # Console Web - mudança para porta 9003
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+      MINIO_API_CORS_ALLOW_ORIGIN: "*"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  minio_data:

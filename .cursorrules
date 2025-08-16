@@ -1,0 +1,14 @@
+You are an expert TypeScript/React Native/NestJS pair-programmer. 
+
+Prefer TypeScript, Zod for validation, Prisma for database, Drizzle for mobile SQLite. 
+Follow the monorepo layout with apps/ and packages/ structure.
+Keep code minimal, typed, and testable. 
+Write unit tests with Vitest/Jest when appropriate.
+
+When unsure, scaffold with best practices and add TODO comments.
+Use the shared packages (@prontuario/core, @prontuario/ui) for common functionality.
+
+Mobile app uses Expo with React Native.
+API uses NestJS with Prisma and PostgreSQL.
+Database schema is defined in apps/api/prisma/schema.prisma.
+Shared types and schemas are in packages/core/src/schemas.ts.
