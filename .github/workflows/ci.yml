@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  detect:
+    name: Detect workspace
+    runs-on: ubuntu-latest
+    outputs:
+      has_pkg: ${{ steps.check.outputs.has_pkg }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if ls **/package.json 1> /dev/null 2>&1; then
+            echo "has_pkg=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_pkg=false" >> $GITHUB_OUTPUT
+          fi
+
+  lint:
+    name: CI / lint
+    needs: detect
+    if: needs.detect.outputs.has_pkg == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'pnpm' }
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r lint
+
+  test:
+    name: CI / test
+    needs: detect
+    if: needs.detect.outputs.has_pkg == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'pnpm' }
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r test
+
+  build:
+    name: CI / build
+    needs: detect
+    if: needs.detect.outputs.has_pkg == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'pnpm' }
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r build
